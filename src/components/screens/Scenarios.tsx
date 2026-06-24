@@ -88,10 +88,11 @@ export function ScenariosScreen() {
 
       <Card className="mb-6 overflow-x-auto">
         <SectionTitle>Comparison</SectionTitle>
-        <table className="w-full min-w-[560px] text-sm">
+        <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-400">
               <th className="pb-2 pr-3 font-medium">Scenario</th>
+              <th className="pb-2 pr-3 text-right font-medium">Starting</th>
               <th className="pb-2 pr-3 text-right font-medium">Surplus / mo</th>
               <th className="pb-2 pr-3 text-right font-medium">Invest / mo</th>
               <th className="pb-2 pr-3 text-right font-medium">In 20y</th>
@@ -108,6 +109,7 @@ export function ScenariosScreen() {
                     <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: LINE_COLORS[i % LINE_COLORS.length] }} />
                     {s.name}
                   </td>
+                  <td className="py-2 pr-3 text-right">{formatEUR(s.pension.startingCapital)}</td>
                   <td className="py-2 pr-3 text-right">{formatEUR(budget.surplus)}</td>
                   <td className="py-2 pr-3 text-right">{formatEUR(budget.allocation.invest)}</td>
                   <td className="py-2 pr-3 text-right">{formatEUR(projectValueAt(params, 20).realNet)}</td>
