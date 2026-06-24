@@ -20,7 +20,9 @@ export function DashboardScreen() {
   const restricted = restrictedBenefitsMonthly(scenario.restrictedBenefits)
   const yearlyIncome = totalAnnualIncome(scenario.income, scenario.annualBenefits)
 
-  const investMonthly = Math.max(0, budget.allocation.invest)
+  // Round to whole euros so the projection matches the figure shown here and on
+  // the Invest & Project tab (its slider seeds from the same rounded amount).
+  const investMonthly = Math.round(Math.max(0, budget.allocation.invest))
   const projParams = {
     monthlyContribution: investMonthly,
     annualContribution: windfall,
