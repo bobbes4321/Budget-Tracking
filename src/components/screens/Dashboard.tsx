@@ -3,7 +3,7 @@ import { EXPENSE_CATEGORIES } from '../../types'
 import { useActiveScenario } from '../../store/useBudgetStore'
 import { computeBudget } from '../../calc/surplus'
 import { categoryBreakdown } from '../../calc/normalize'
-import { investableWindfallsAnnual, restrictedBenefitsMonthly } from '../../calc/income'
+import { investableWindfallsAnnual, restrictedBenefitsMonthly, totalAnnualIncome } from '../../calc/income'
 import { projectValueAt } from '../../calc/projection'
 import { fundProgress } from '../../calc/sinkingFunds'
 import { formatEUR } from '../../utils/format'
@@ -18,6 +18,7 @@ export function DashboardScreen() {
   const breakdown = categoryBreakdown(scenario.expenses)
   const windfall = investableWindfallsAnnual(scenario.annualBenefits)
   const restricted = restrictedBenefitsMonthly(scenario.restrictedBenefits)
+  const yearlyIncome = totalAnnualIncome(scenario.income, scenario.annualBenefits)
 
   const investMonthly = Math.max(0, budget.allocation.invest)
   const projParams = {
@@ -34,8 +35,9 @@ export function DashboardScreen() {
     <div>
       <PageHeader title="Dashboard" subtitle={`Scenario: ${scenario.name}`} />
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <Stat label="Available income / mo" value={formatEUR(budget.availableIncome)} hint={restricted > 0 ? `+ ${formatEUR(restricted)}/mo restricted benefits` : undefined} />
+        <Stat label="Yearly income" value={formatEUR(yearlyIncome)} hint="Net salary × 12 + annual benefits" />
         <Stat label="True monthly cost" value={formatEUR(budget.trueMonthlyCost)} hint={`+ ${formatEUR(budget.sinkingMonthly)}/mo to goals`} />
         <Stat label="Monthly surplus" value={formatEUR(budget.surplus)} tone={budget.surplus >= 0 ? 'positive' : 'negative'} hint={budget.surplus < 0 ? 'Spending exceeds income' : `${formatEUR(budget.allocation.invest)} to invest`} />
         <Stat label="Investable windfalls / yr" value={formatEUR(windfall)} hint="From benefits flagged as windfalls" />

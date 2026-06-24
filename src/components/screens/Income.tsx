@@ -1,6 +1,6 @@
 import { EXPENSE_CATEGORIES, type AnnualBenefitTreatment, type ExpenseCategory } from '../../types'
 import { useActiveScenario, useBudgetStore } from '../../store/useBudgetStore'
-import { keepRatio, totalNettoMonthly } from '../../calc/income'
+import { keepRatio, totalAnnualIncome, totalNettoMonthly } from '../../calc/income'
 import { formatEUR, formatPct } from '../../utils/format'
 import { uid } from '../../utils/id'
 import { Card, PageHeader, SectionTitle, Button } from '../ui/primitives'
@@ -49,8 +49,9 @@ export function IncomeScreen() {
               ))}
               <Button variant="secondary" onClick={() => mutate((s) => { s.income.push({ id: uid(), name: 'New income', nettoMonthly: 0 }) })}>+ Add income</Button>
             </div>
-            <div className="mt-4 flex gap-6 border-t border-slate-100 pt-4 text-sm">
+            <div className="mt-4 flex flex-wrap gap-6 border-t border-slate-100 pt-4 text-sm">
               <span className="text-slate-500">Total net: <strong className="text-slate-900">{formatEUR(totalNettoMonthly(scenario.income))}/mo</strong></span>
+              <span className="text-slate-500">Yearly income: <strong className="text-slate-900">{formatEUR(totalAnnualIncome(scenario.income, scenario.annualBenefits))}/yr</strong></span>
               {ratio !== null && (
                 <span className="text-slate-500">You keep <strong className="text-slate-900">{formatPct(ratio * 100)}</strong> of gross</span>
               )}

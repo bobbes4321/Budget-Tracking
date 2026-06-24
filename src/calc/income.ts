@@ -34,6 +34,19 @@ export function restrictedBenefitsMonthly(benefits: RestrictedBenefit[]): number
   return benefits.reduce((s, b) => s + b.monthlyValue, 0)
 }
 
+/** Total annual net cash from all annual benefits, regardless of treatment. */
+export function totalAnnualBenefits(benefits: AnnualBenefit[]): number {
+  return benefits.reduce((s, b) => s + b.annualNetAmount, 0)
+}
+
+/** Total yearly net income: net salary annualized + all annual benefits. */
+export function totalAnnualIncome(
+  income: IncomeItem[],
+  annualBenefits: AnnualBenefit[],
+): number {
+  return totalNettoMonthly(income) * 12 + totalAnnualBenefits(annualBenefits)
+}
+
 /** Cash available each month for budgeting: net salary + smoothed benefits. */
 export function availableMonthlyIncome(
   income: IncomeItem[],
