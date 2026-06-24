@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useBudgetStore } from './store/useBudgetStore'
 import { DashboardScreen } from './components/screens/Dashboard'
 import { IncomeScreen } from './components/screens/Income'
@@ -22,11 +22,23 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id']
 
+function tabFromHash(): TabId {
+  const id = window.location.hash.replace(/^#\/?/, '')
+  return TABS.some((t) => t.id === id) ? (id as TabId) : 'dashboard'
+}
+
 function App() {
-  const [tab, setTab] = useState<TabId>('dashboard')
+  const [tab, setTab] = useState<TabId>(tabFromHash)
   const scenarios = useBudgetStore((s) => s.scenarios)
   const activeScenarioId = useBudgetStore((s) => s.activeScenarioId)
   const setActiveScenario = useBudgetStore((s) => s.setActiveScenario)
+
+  // Keep the tab in sync with the URL hash so deep-links and browser back/forward work.
+  useEffect(() => {
+    const onHashChange = () => setTab(tabFromHash())
+    window.addEventListener('hashchange', onHashChange)
+    return () => window.removeEventListener('hashchange', onHashChange)
+  }, [])
 
   const Screen = TABS.find((t) => t.id === tab)!.Screen
 
@@ -55,7 +67,7 @@ function App() {
           {TABS.map((t) => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => { window.location.hash = `/${t.id}` }}
               className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                 tab === t.id ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-100'
               }`}

@@ -37,6 +37,8 @@ export function projectPension(
   pension: PensionConfig,
   assumptions: Assumptions,
   brokerageMonthly: number,
+  /** Annual lump invested into the brokerage pot (e.g. investable windfalls). */
+  brokerageAnnual = 0,
 ): PensionProjection {
   const years = Math.max(0, pension.retirementAge - pension.currentAge)
   const { nominalReturnPct, inflationPct, tobPct, capitalGainsTaxPct } = assumptions
@@ -73,6 +75,7 @@ export function projectPension(
   const brokeragePoint = projectValueAt(
     {
       monthlyContribution: brokerageMonthly,
+      annualContribution: brokerageAnnual,
       startingCapital: pension.startingCapital,
       nominalReturnPct,
       inflationPct,
@@ -92,7 +95,24 @@ export function projectPension(
   let onTrack: boolean | null = null
   if (pension.targetCapital && pension.targetCapital > 0) {
     const targetNominal = realToNominal(pension.targetCapital, inflationPct, years)
-    const gap = Math.max(0, targetNominal - pillar.nominalNet)
+    // Credit what the pillar and the annual windfalls already cover before
+    // solving for the monthly brokerage contribution still needed.
+    const windfallNominalNet =
+      brokerageAnnual > 0
+        ? projectValueAt(
+            {
+              monthlyContribution: 0,
+              annualContribution: brokerageAnnual,
+              startingCapital: 0,
+              nominalReturnPct,
+              inflationPct,
+              tobPct,
+              capitalGainsTaxPct,
+            },
+            years,
+          ).nominalNet
+        : 0
+    const gap = Math.max(0, targetNominal - pillar.nominalNet - windfallNominalNet)
     requiredMonthlyForTarget = requiredMonthlyContribution({
       targetNominal: gap,
       startingCapital: pension.startingCapital,

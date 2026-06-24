@@ -1,5 +1,6 @@
 import { useActiveScenario, useBudgetStore } from '../../store/useBudgetStore'
 import { computeBudget } from '../../calc/surplus'
+import { investableWindfallsAnnual } from '../../calc/income'
 import { projectPension } from '../../calc/pension'
 import { PENSIOENSPAREN } from '../../calc/belgian'
 import type { PensioensparenRegime } from '../../types'
@@ -19,7 +20,8 @@ export function PensionScreen() {
   const p = scenario.pension
   const budget = computeBudget(scenario)
   const brokerageMonthly = Math.max(0, budget.allocation.invest)
-  const proj = projectPension(p, scenario.assumptions, brokerageMonthly)
+  const brokerageAnnual = investableWindfallsAnnual(scenario.annualBenefits)
+  const proj = projectPension(p, scenario.assumptions, brokerageMonthly, brokerageAnnual)
 
   return (
     <div>
@@ -86,10 +88,10 @@ export function PensionScreen() {
             <SectionTitle>Where it comes from (today's money)</SectionTitle>
             <div className="space-y-4">
               <PotBar label="Pensioensparen (3rd pillar)" amount={proj.pillar.realNet} total={proj.totalRealNet} contributed={proj.pillar.contributedMonthly} />
-              <PotBar label="Brokerage (your surplus)" amount={proj.brokerage.realNet} total={proj.totalRealNet} contributed={proj.brokerage.contributedMonthly} />
+              <PotBar label={brokerageAnnual > 0 ? 'Brokerage (surplus + windfalls)' : 'Brokerage (your surplus)'} amount={proj.brokerage.realNet} total={proj.totalRealNet} contributed={proj.brokerage.contributedMonthly} />
             </div>
             <p className="mt-4 border-t border-slate-100 pt-3 text-xs text-slate-400">
-              Brokerage contribution comes from your monthly invest allocation. Adjust it on the Invest &amp; Project tab.
+              Brokerage contribution comes from your monthly invest allocation{brokerageAnnual > 0 ? ` plus ${formatEUR(brokerageAnnual)}/yr of investable windfalls` : ''}. Adjust it on the Invest &amp; Project tab.
               The required-monthly figure is gross of tax — treat it as a floor.
             </p>
           </Card>

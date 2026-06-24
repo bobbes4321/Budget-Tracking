@@ -23,6 +23,7 @@ export function DashboardScreen() {
   const investMonthly = Math.max(0, budget.allocation.invest)
   const projParams = {
     monthlyContribution: investMonthly,
+    annualContribution: windfall,
     startingCapital: scenario.pension.startingCapital,
     nominalReturnPct: scenario.assumptions.nominalReturnPct,
     inflationPct: scenario.assumptions.inflationPct,
@@ -45,7 +46,7 @@ export function DashboardScreen() {
 
       <div className="mb-6 grid gap-6 lg:grid-cols-[1fr_1fr]">
         <Card>
-          <SectionTitle>If you invest {formatEUR(investMonthly)}/mo (today's money)</SectionTitle>
+          <SectionTitle>If you invest {formatEUR(investMonthly)}/mo{windfall > 0 ? ` + ${formatEUR(windfall)}/yr` : ''} (today's money)</SectionTitle>
           <div className="grid grid-cols-3 gap-3">
             {horizons.map(({ y, v }) => (
               <div key={y} className="rounded-lg bg-brand-50 p-4 text-center">

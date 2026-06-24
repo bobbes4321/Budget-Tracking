@@ -2,6 +2,7 @@ import { LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Responsi
 import { useBudgetStore } from '../../store/useBudgetStore'
 import type { Scenario } from '../../types'
 import { computeBudget } from '../../calc/surplus'
+import { investableWindfallsAnnual } from '../../calc/income'
 import { projectSeries, projectValueAt } from '../../calc/projection'
 import { formatEUR, formatEURCompact } from '../../utils/format'
 import { Card, PageHeader, Button, SectionTitle } from '../ui/primitives'
@@ -14,6 +15,7 @@ function investMonthlyOf(s: Scenario): number {
 function projParamsOf(s: Scenario) {
   return {
     monthlyContribution: investMonthlyOf(s),
+    annualContribution: investableWindfallsAnnual(s.annualBenefits),
     startingCapital: s.pension.startingCapital,
     nominalReturnPct: s.assumptions.nominalReturnPct,
     inflationPct: s.assumptions.inflationPct,
@@ -30,6 +32,7 @@ export function ScenariosScreen() {
   const addScenario = useBudgetStore((s) => s.addScenario)
   const remove = useBudgetStore((s) => s.deleteScenario)
   const toggleCompare = useBudgetStore((s) => s.toggleComparison)
+  const move = useBudgetStore((s) => s.moveScenario)
 
   const compared = scenarios.filter((s) => comparisonIds.includes(s.id))
 
@@ -49,10 +52,14 @@ export function ScenariosScreen() {
 
       <Card className="mb-6">
         <div className="space-y-2">
-          {scenarios.map((s) => {
+          {scenarios.map((s, i) => {
             const budget = computeBudget(s)
             return (
               <div key={s.id} className={`flex flex-wrap items-center gap-3 rounded-lg border p-3 ${s.id === activeScenarioId ? 'border-brand-300 bg-brand-50' : 'border-slate-200'}`}>
+                <div className="flex flex-col">
+                  <Button variant="ghost" className="px-1.5 py-0 leading-none" disabled={i === 0} onClick={() => move(s.id, 'up')} title="Move up">▲</Button>
+                  <Button variant="ghost" className="px-1.5 py-0 leading-none" disabled={i === scenarios.length - 1} onClick={() => move(s.id, 'down')} title="Move down">▼</Button>
+                </div>
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" className="h-4 w-4 accent-brand-600" checked={comparisonIds.includes(s.id)} onChange={() => toggleCompare(s.id)} />
                   <span className="text-xs text-slate-400">compare</span>

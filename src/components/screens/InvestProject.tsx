@@ -11,6 +11,7 @@ import {
 } from 'recharts'
 import { useActiveScenario, useBudgetStore } from '../../store/useBudgetStore'
 import { computeBudget } from '../../calc/surplus'
+import { investableWindfallsAnnual } from '../../calc/income'
 import { projectSeries, projectValueAt, type ProjectionPoint } from '../../calc/projection'
 import { formatEUR, formatEURCompact, formatPct } from '../../utils/format'
 import { Card, PageHeader, Stat } from '../ui/primitives'
@@ -33,23 +34,23 @@ export function InvestProjectScreen() {
   // shared with the Pension tab so every projection stays consistent.
   const startingCapital = scenario.pension.startingCapital
   const setStartingCapital = (v: number) => mutate((s) => { s.pension.startingCapital = Math.max(0, v) })
+  const windfall = investableWindfallsAnnual(scenario.annualBenefits)
 
   const valueKey: ValueKey = viewReal
     ? applyTax ? 'realNet' : 'realGross'
     : applyTax ? 'nominalNet' : 'nominalGross'
 
-  const params = {
+  const params = useMemo(() => ({
     monthlyContribution: contribution,
+    annualContribution: windfall,
     startingCapital,
     nominalReturnPct: a.nominalReturnPct,
     inflationPct: a.inflationPct,
     tobPct: applyTax ? a.tobPct : 0,
     capitalGainsTaxPct: applyTax ? a.capitalGainsTaxPct : 0,
-  }
+  }), [contribution, windfall, startingCapital, a.nominalReturnPct, a.inflationPct, a.tobPct, a.capitalGainsTaxPct, applyTax])
 
-  const series = useMemo(() => projectSeries({ ...params, years: 40 }), [
-    contribution, startingCapital, a.nominalReturnPct, a.inflationPct, a.tobPct, a.capitalGainsTaxPct, applyTax,
-  ])
+  const series = useMemo(() => projectSeries({ ...params, years: 40 }), [params])
 
   const horizons = [20, 30, 40].map((y) => ({ years: y, point: projectValueAt(params, y) }))
 
@@ -140,7 +141,10 @@ export function InvestProjectScreen() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-          <p className="mt-2 text-xs text-slate-400">Green = portfolio value · grey = money you contributed. The gap is growth.</p>
+          <p className="mt-2 text-xs text-slate-400">
+            Green = portfolio value · grey = money you contributed. The gap is growth.
+            {windfall > 0 && ` Includes ${formatEUR(windfall)}/yr of investable windfalls, invested as a yearly lump.`}
+          </p>
         </Card>
       </div>
 

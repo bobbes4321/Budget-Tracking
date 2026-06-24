@@ -15,6 +15,8 @@ interface BudgetStore extends AppState {
   renameScenario: (id: string, name: string) => void
   deleteScenario: (id: string) => void
   toggleComparison: (id: string) => void
+  /** Move a scenario one position up or down in the ordering. */
+  moveScenario: (id: string, direction: 'up' | 'down') => void
 }
 
 function cloneScenarioWithNewIds(s: Scenario, name: string): Scenario {
@@ -83,6 +85,17 @@ export const useBudgetStore = create<BudgetStore>((set) => ({
         activeScenarioId,
         comparisonIds: comparisonIds.length ? comparisonIds : [activeScenarioId],
       }
+    }),
+
+  moveScenario: (id, direction) =>
+    set((state) => {
+      const index = state.scenarios.findIndex((s) => s.id === id)
+      if (index === -1) return {}
+      const target = direction === 'up' ? index - 1 : index + 1
+      if (target < 0 || target >= state.scenarios.length) return {}
+      const scenarios = [...state.scenarios]
+      ;[scenarios[index], scenarios[target]] = [scenarios[target], scenarios[index]]
+      return { scenarios }
     }),
 
   toggleComparison: (id) =>

@@ -14,6 +14,8 @@ export interface ProjectionParams {
   tobPct?: number
   /** Capital-gains tax applied to gains at the horizon, as a percentage. */
   capitalGainsTaxPct?: number
+  /** Lump sum invested once at each completed year (e.g. an annual windfall/bonus). */
+  annualContribution?: number
 }
 
 export interface ProjectionPoint {
@@ -46,6 +48,8 @@ export function projectSeries(p: ProjectionParams): ProjectionPoint[] {
   const tob = (p.tobPct ?? 0) / 100
   const cgt = (p.capitalGainsTaxPct ?? 0) / 100
   const effContribution = p.monthlyContribution * (1 - tob)
+  const annualContribution = p.annualContribution ?? 0
+  const effAnnual = annualContribution * (1 - tob)
   const totalMonths = Math.round(p.years * 12)
 
   let balance = p.startingCapital
@@ -70,6 +74,10 @@ export function projectSeries(p: ProjectionParams): ProjectionPoint[] {
   for (let m = 1; m <= totalMonths; m++) {
     balance = balance * (1 + rMonthly) + effContribution
     principal += p.monthlyContribution
+    if (m % 12 === 0) {
+      balance += effAnnual
+      principal += annualContribution
+    }
     if (m % 12 === 0 || m === totalMonths) pushPoint(m)
   }
   return points

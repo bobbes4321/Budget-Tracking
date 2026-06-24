@@ -146,6 +146,24 @@ describe('projection', () => {
     expect(taxed.nominalNet).toBeCloseTo(gross.principal + gains * 0.9, 1)
   })
 
+  it('invests an annual windfall as a yearly lump', () => {
+    const point = projectValueAt(
+      { monthlyContribution: 0, startingCapital: 0, nominalReturnPct: 7, inflationPct: 0, annualContribution: 1000 },
+      3,
+    )
+    // Lumps land at the end of years 1, 2, 3; the first two compound at 7%.
+    const expected = 1000 * Math.pow(1.07, 2) + 1000 * Math.pow(1.07, 1) + 1000
+    expect(point.nominalGross).toBeCloseTo(expected, 2)
+    expect(point.principal).toBe(3000)
+  })
+
+  it('annual windfall lifts the projection above monthly-only', () => {
+    const base = { monthlyContribution: 200, startingCapital: 0, nominalReturnPct: 7, inflationPct: 0 }
+    const withoutWindfall = projectValueAt(base, 40).nominalGross
+    const withWindfall = projectValueAt({ ...base, annualContribution: 2400 }, 40).nominalGross
+    expect(withWindfall).toBeGreaterThan(withoutWindfall)
+  })
+
   it('emits one point per year plus year 0', () => {
     const series = projectSeries({
       monthlyContribution: 100,
